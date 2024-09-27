@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "openweathermap-daily-summary-enriched"
+version = "0.1.0"
+description = "An API that fetches daily weather summaries from the OpenWeatherMap API and enriches them with some additional calculations"
+authors = ["Pavel Kalmykov Razgovorov <pavel.granalacant@gmail.com>"]
+license = "CC0 1.0 Universal"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.115.0"}
+uvicorn = {extras = ["standard"], version = "^0.30.6"}
+sqlalchemy = "^2.0.35"
+psycopg2-binary = "^2.9.9"
+polars = "^1.8.2"
+pydantic = "^2.9.2"
+python-dotenv = "^1.0.1"
+httpx = "^0.27.2"
+alembic = "^1.13.3"
+pydantic-settings = "^2.5.2"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.3"
+pytest-asyncio = "^0.24.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
