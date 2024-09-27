@@ -33,8 +33,8 @@ def sample_data():
 
 
 def test_weather_data_processor(sample_data):
-    processor = WeatherDataProcessor(sample_data)
-    result = processor.process_data()
+    processor = WeatherDataProcessor()
+    result = processor.process_data(sample_data)
 
     # Check if the result is a Polars DataFrame
     assert isinstance(result, pl.DataFrame)

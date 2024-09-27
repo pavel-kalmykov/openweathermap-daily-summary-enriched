@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     app_port: int
     env: str
     log_level: str = "INFO"
+    openweathermap_day_summary_url: str = (
+        "https://api.openweathermap.org/data/3.0/onecall/day_summary"
+    )
+    openweathermap_max_calls_per_minute: int = 60
 
     @property
     def database_url(self) -> PostgresDsn:

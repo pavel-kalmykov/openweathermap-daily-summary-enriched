@@ -4,12 +4,9 @@ import polars as pl
 
 
 class WeatherDataProcessor:
-    def __init__(self, raw_data: List[Dict]):
-        self.raw_data = raw_data
-
-    def process_data(self) -> pl.DataFrame:
+    def process_data(self, raw_data: List[Dict]) -> pl.DataFrame:
         # Convert the raw data to a Polars DataFrame
-        df = pl.DataFrame(self.raw_data)
+        df = pl.DataFrame(raw_data)
 
         # Flatten nested structures
         df = df.with_columns(
