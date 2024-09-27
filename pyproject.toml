@@ -11,7 +11,8 @@ package-mode = false
 python = "^3.12"
 fastapi = {extras = ["standard"], version = "^0.115.0"}
 uvicorn = {extras = ["standard"], version = "^0.30.6"}
-sqlalchemy = "^2.0.35"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.35"}
+asyncpg = "^0.29.0"
 psycopg2-binary = "^2.9.9"
 polars = "^1.8.2"
 pydantic = "^2.9.2"
