@@ -7,7 +7,7 @@ services:
       - "${APP_PORT}:${APP_PORT}"
     environment:
       - API_KEY=${API_KEY}
-      - DB_HOST=${DB_HOST}
+      - DB_HOST=db
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}

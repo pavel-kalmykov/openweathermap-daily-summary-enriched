@@ -17,6 +17,7 @@ class Settings(BaseSettings):
         "https://api.openweathermap.org/data/3.0/onecall/day_summary"
     )
     openweathermap_max_calls_per_minute: int = 60
+    weather_service_max_date_range: int = 31
 
     @property
     def database_url(self) -> str:

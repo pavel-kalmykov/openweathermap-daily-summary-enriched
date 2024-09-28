@@ -4,7 +4,7 @@ from datetime import date
 import polars as pl
 import pytest
 
-from app.usecases.weather_data_processor import WeatherDataProcessor
+from app.usecases import WeatherDataProcessor
 
 
 @pytest.fixture
