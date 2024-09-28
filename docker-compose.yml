@@ -13,7 +13,6 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - APP_PORT=${APP_PORT}
-      - ENV=${ENV}
     depends_on:
       - db
 

@@ -26,6 +26,9 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+# fmt: off
+from app.models import * # noqa
+# fmt: on
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -46,7 +49,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.database_url.unicode_string()
+    url = settings.database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -71,7 +74,7 @@ async def run_async_migrations() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.database_url.unicode_string()
+    configuration.setdefault("sqlalchemy.url", settings.database_url)
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",

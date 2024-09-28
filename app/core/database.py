@@ -58,7 +58,7 @@ class DatabaseSessionManager:
             await session.close()
 
 
-sessionmanager = DatabaseSessionManager(settings.database_url.unicode_string())
+sessionmanager = DatabaseSessionManager(settings.database_url)
 
 
 async def get_db_session():

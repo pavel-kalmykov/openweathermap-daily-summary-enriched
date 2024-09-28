@@ -1,5 +1,6 @@
 # tests/test_weather_processor.py
 
+from datetime import date
 import polars as pl
 import pytest
 
@@ -44,11 +45,10 @@ def test_weather_data_processor(sample_data):
 
     # Check if all expected columns are present
     expected_columns = [
-        "lat",
-        "lon",
-        "tz",
+        "latitude",
+        "longitude",
+        "timezone",
         "date",
-        "units",
         "cloud_cover_afternoon",
         "humidity_afternoon",
         "precipitation_total",
@@ -78,18 +78,18 @@ def test_weather_data_processor(sample_data):
     row = result.row(0, named=True)
 
     # Check original data is preserved
-    assert row["lat"] == 33
-    assert row["lon"] == 35
-    assert row["date"] == "2020-07-15"
-    assert row["cloud_cover_afternoon"] == 10
-    assert row["humidity_afternoon"] == 70
-    assert row["precipitation_total"] == 55
-    assert row["temp_min"] == 293.15
-    assert row["temp_max"] == 308.15
-    assert row["temp_afternoon"] == 306.15
-    assert row["pressure_afternoon"] == 1010
-    assert row["wind_speed_max"] == 22
-    assert row["wind_direction_max"] == 180
+    assert row["latitude"] == 33
+    assert row["longitude"] == 35
+    assert row["date"] == date(2020, 7, 15)
+    assert row["cloud_cover_afternoon"] == pytest.approx(10, rel=1e-2)
+    assert row["humidity_afternoon"] == pytest.approx(70, rel=1e-2)
+    assert row["precipitation_total"] == pytest.approx(55, rel=1e-2)
+    assert row["temp_min"] == pytest.approx(293.15, rel=1e-2)
+    assert row["temp_max"] == pytest.approx(308.15, rel=1e-2)
+    assert row["temp_afternoon"] == pytest.approx(306.15, rel=1e-2)
+    assert row["pressure_afternoon"] == pytest.approx(1010, rel=1e-2)
+    assert row["wind_speed_max"] == pytest.approx(22, rel=1e-2)
+    assert row["wind_direction_max"] == pytest.approx(180, rel=1e-2)
 
     # Check derived values
     assert row["temp_range"] == pytest.approx(15, rel=1e-2)

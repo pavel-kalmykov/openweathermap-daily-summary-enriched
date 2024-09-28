@@ -11,6 +11,10 @@ class WeatherDataProcessor:
         # Flatten nested structures
         df = df.with_columns(
             [
+                pl.col("lat").alias("latitude"),
+                pl.col("lon").alias("longitude"),
+                pl.col("tz").alias("timezone"),
+                pl.col("date").str.strptime(pl.Date, format="%Y-%m-%d").alias("date"),
                 pl.col("cloud_cover")
                 .struct.field("afternoon")
                 .alias("cloud_cover_afternoon"),
@@ -43,6 +47,10 @@ class WeatherDataProcessor:
         # Drop original nested columns
         df = df.drop(
             [
+                "lat",
+                "lon",
+                "tz",
+                "units",
                 "cloud_cover",
                 "humidity",
                 "precipitation",

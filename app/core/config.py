@@ -1,4 +1,3 @@
-from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,7 +11,7 @@ class Settings(BaseSettings):
     db_password: str
     db_name: str
     app_port: int
-    env: str
+    db_url: str | None = None
     log_level: str = "INFO"
     openweathermap_day_summary_url: str = (
         "https://api.openweathermap.org/data/3.0/onecall/day_summary"
@@ -20,9 +19,10 @@ class Settings(BaseSettings):
     openweathermap_max_calls_per_minute: int = 60
 
     @property
-    def database_url(self) -> PostgresDsn:
-        return PostgresDsn(
-            f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+    def database_url(self) -> str:
+        return (
+            self.db_url
+            or f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
 
