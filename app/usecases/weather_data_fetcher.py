@@ -1,14 +1,15 @@
 # app/services/weather_data_fetcher.py
 import asyncio
 from datetime import date
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import httpx
 from aiolimiter import AsyncLimiter
 
 from app.core.config import settings
+from app.schemas import GeocodingResult, WeatherDailySummaryResult
 
-JsonType = Dict[str, Any]
+JsonType = dict[str, Any]
 
 
 class WeatherDataFetcher:
@@ -19,8 +20,8 @@ class WeatherDataFetcher:
         )
 
     async def fetch_weather_data(
-        self, latitude: str, longitude: str, dates: List[date]
-    ) -> Tuple[List[JsonType], List[JsonType]]:
+        self, latitude: str, longitude: str, dates: list[date]
+    ) -> tuple[list[WeatherDailySummaryResult], list[JsonType]]:
         tasks = [self._fetch_single_day(latitude, longitude, date) for date in dates]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -42,7 +43,7 @@ class WeatherDataFetcher:
 
     async def _fetch_single_day(
         self, latitude: str, longitude: str, day: date
-    ) -> JsonType:
+    ) -> WeatherDailySummaryResult:
         params = {
             "lat": latitude,
             "lon": longitude,
@@ -55,4 +56,15 @@ class WeatherDataFetcher:
                 settings.openweathermap_day_summary_url, params=params
             )
             response.raise_for_status()
-            return response.json()
+            return WeatherDailySummaryResult.model_validate_json(response.text)
+
+    async def fetch_coordinates(self, location_name: str) -> list[GeocodingResult]:
+        params = {
+            "q": location_name,
+            "limit": settings.geocoding_results_limit,
+            "appid": settings.api_key,
+        }
+        async with self.limiter, httpx.AsyncClient() as client:
+            response = await client.get(settings.geocoding_api_url, params=params)
+            response.raise_for_status()
+            return [GeocodingResult.model_validate(item) for item in response.json()]

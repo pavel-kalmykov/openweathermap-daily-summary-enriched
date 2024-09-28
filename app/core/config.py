@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     openweathermap_day_summary_url: str = (
         "https://api.openweathermap.org/data/3.0/onecall/day_summary"
     )
+    geocoding_api_url: str = "http://api.openweathermap.org/geo/1.0/direct"
+    geocoding_results_limit: int = 5
     openweathermap_max_calls_per_minute: int = 60
     weather_service_max_date_range: int = 31
 

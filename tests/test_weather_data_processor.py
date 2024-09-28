@@ -1,35 +1,39 @@
 # tests/test_weather_processor.py
 
 from datetime import date
+
 import polars as pl
 import pytest
 
+from app.schemas import WeatherDailySummaryResult
 from app.usecases import WeatherDataProcessor
 
 
 @pytest.fixture
 def sample_data():
     return [
-        {
-            "lat": 33,
-            "lon": 35,
-            "tz": "+02:00",
-            "date": "2020-07-15",
-            "units": "standard",
-            "cloud_cover": {"afternoon": 10},
-            "humidity": {"afternoon": 70},
-            "precipitation": {"total": 55},
-            "temperature": {
-                "min": 293.15,  # 20°C
-                "max": 308.15,  # 35°C
-                "afternoon": 306.15,  # 33°C
-                "night": 295.15,
-                "evening": 303.15,
-                "morning": 294.15,
-            },
-            "pressure": {"afternoon": 1010},
-            "wind": {"max": {"speed": 22, "direction": 180}},
-        }
+        WeatherDailySummaryResult.model_validate(
+            {
+                "lat": 33,
+                "lon": 35,
+                "tz": "+02:00",
+                "date": "2020-07-15",
+                "units": "standard",
+                "cloud_cover": {"afternoon": 10},
+                "humidity": {"afternoon": 70},
+                "precipitation": {"total": 55},
+                "temperature": {
+                    "min": 293.15,  # 20°C
+                    "max": 308.15,  # 35°C
+                    "afternoon": 306.15,  # 33°C
+                    "night": 295.15,
+                    "evening": 303.15,
+                    "morning": 294.15,
+                },
+                "pressure": {"afternoon": 1010},
+                "wind": {"max": {"speed": 22, "direction": 180}},
+            }
+        )
     ]
 
 

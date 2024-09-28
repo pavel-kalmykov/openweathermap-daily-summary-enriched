@@ -1,10 +1,8 @@
-from typing import Dict, List
-
 import polars as pl
 
 
 class WeatherDataProcessor:
-    def process_data(self, raw_data: List[Dict]) -> pl.DataFrame:
+    def process_data(self, raw_data: list[dict]) -> pl.DataFrame:
         # Convert the raw data to a Polars DataFrame
         df = pl.DataFrame(raw_data)
 
