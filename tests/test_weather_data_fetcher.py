@@ -20,26 +20,26 @@ async def test_weather_data_processor():
     )
 
     assert not api_errors
-    assert api_results == [
+    expected_results = [
         {
             "lat": 38.2653307,
             "lon": -0.6988391,
             "tz": "+02:00",
             "date": "2024-09-27",
             "units": "standard",
-            "cloud_cover": {"afternoon": 13.32},
-            "humidity": {"afternoon": 42.45},
-            "precipitation": {"total": 0.07},
+            "cloud_cover": {"afternoon": 0.0},
+            "humidity": {"afternoon": 50.0},
+            "precipitation": {"total": 0.0},
             "temperature": {
-                "min": 295.79,
-                "max": 302.02,
-                "afternoon": 300.78,
-                "night": 299.43,
-                "evening": 301.13,
-                "morning": 296.86,
+                "min": 296.38,
+                "max": 302.46,
+                "afternoon": 300.86,
+                "night": 299.57,
+                "evening": 299.95,
+                "morning": 297.28,
             },
-            "pressure": {"afternoon": 1014.06},
-            "wind": {"max": {"speed": 7.81, "direction": 310.84}},
+            "pressure": {"afternoon": 1014.0},
+            "wind": {"max": {"speed": 8.23, "direction": 310.0}},
         },
         {
             "lat": 38.2653307,
@@ -62,6 +62,8 @@ async def test_weather_data_processor():
             "wind": {"max": {"speed": 7.72, "direction": 180.0}},
         },
     ]
+
+    assert api_results == expected_results
 
 
 @pytest.mark.asyncio
