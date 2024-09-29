@@ -13,11 +13,8 @@ JsonType = dict[str, Any]
 
 
 class WeatherDataFetcher:
-    def __init__(self, max_calls_per_minute: int | None = None):
-        self.limiter = AsyncLimiter(
-            max_rate=max_calls_per_minute
-            or settings.openweathermap_max_calls_per_minute
-        )
+    def __init__(self):
+        self.limiter = AsyncLimiter(settings.openweathermap_max_calls_per_minute)
 
     async def fetch_weather_data(
         self, latitude: str, longitude: str, dates: list[date]

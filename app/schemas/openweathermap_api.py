@@ -1,58 +1,83 @@
-from pydantic import BaseModel
+from typing import Annotated
+
+from pydantic import BaseModel, Field
 
 
 class CloudCover(BaseModel):
-    afternoon: float
+    afternoon: Annotated[float, Field(description="Afternoon cloud cover percentage")]
 
 
 class Humidity(BaseModel):
-    afternoon: float
+    afternoon: Annotated[float, Field(description="Afternoon humidity percentage")]
 
 
 class Precipitation(BaseModel):
-    total: float
+    total: Annotated[float, Field(description="Total precipitation in mm")]
 
 
 class Temperature(BaseModel):
-    min: float
-    max: float
-    afternoon: float
-    night: float
-    evening: float
-    morning: float
+    min: Annotated[
+        float, Field(description="Minimum temperature (in Kelvin by default)")
+    ]
+    max: Annotated[
+        float, Field(description="Maximum temperature (in Kelvin by default)")
+    ]
+    afternoon: Annotated[
+        float, Field(description="Afternoon temperature (in Kelvin by default)")
+    ]
+    night: Annotated[
+        float, Field(description="Night temperature (in Kelvin by default)")
+    ]
+    evening: Annotated[
+        float, Field(description="Evening temperature (in Kelvin by default)")
+    ]
+    morning: Annotated[
+        float, Field(description="Morning temperature (in Kelvin by default)")
+    ]
 
 
 class Pressure(BaseModel):
-    afternoon: float
+    afternoon: Annotated[
+        float, Field(description="Afternoon atmospheric pressure in hPa")
+    ]
 
 
 class Max(BaseModel):
-    speed: float
-    direction: float
+    speed: Annotated[float, Field(description="Maximum wind speed in m/s")]
+    direction: Annotated[
+        float, Field(description="Direction of maximum wind in degrees")
+    ]
 
 
 class Wind(BaseModel):
-    max: Max
+    max: Annotated[Max, Field(description="Maximum wind information")]
 
 
 class WeatherDailySummaryResult(BaseModel):
-    lat: float
-    lon: float
-    tz: str
-    date: str
-    units: str
-    cloud_cover: CloudCover
-    humidity: Humidity
-    precipitation: Precipitation
-    temperature: Temperature
-    pressure: Pressure
-    wind: Wind
+    lat: Annotated[float, Field(description="Latitude of the location")]
+    lon: Annotated[float, Field(description="Longitude of the location")]
+    tz: Annotated[str, Field(description="Timezone of the location")]
+    date: Annotated[str, Field(description="Date of the weather summary (YYYY-MM-DD)")]
+    units: Annotated[str, Field(description="Units used for measurements")]
+    cloud_cover: Annotated[CloudCover, Field(description="Cloud cover information")]
+    humidity: Annotated[Humidity, Field(description="Humidity information")]
+    precipitation: Annotated[
+        Precipitation, Field(description="Precipitation information")
+    ]
+    temperature: Annotated[Temperature, Field(description="Temperature information")]
+    pressure: Annotated[Pressure, Field(description="Pressure information")]
+    wind: Annotated[Wind, Field(description="Wind information")]
 
 
 class GeocodingResult(BaseModel):
-    name: str
-    local_names: dict[str, str] | None = None
-    lat: float
-    lon: float
-    country: str | None = None
-    state: str | None = None
+    name: Annotated[str, Field(description="Name of the location")]
+    local_names: Annotated[
+        dict[str, str] | None,
+        Field(None, description="Names of the location in different languages"),
+    ]
+    lat: Annotated[float, Field(description="Latitude of the location")]
+    lon: Annotated[float, Field(description="Longitude of the location")]
+    country: Annotated[str | None, Field(None, description="Country of the location")]
+    state: Annotated[
+        str | None, Field(None, description="State or region of the location")
+    ]
