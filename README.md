@@ -22,6 +22,7 @@ Overall, these are the technologies used to build this project:
 - Poetry for dependency management and packaging
 - Ruff for linting and formatting
 - MkDocs for documentation
+- GitHub Actions for the CI pipeline
 
 ## Quick Start
 

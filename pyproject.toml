@@ -70,7 +70,7 @@ select = [
     "ERA",  # eradicate
     "PD",  # pydantic-specific rules
 ]
-ignore = ["E501"]
+ignore = ["E501", "ISC001"]
 
 # Enable Pyflakes `F401` check.
 extend-select = ["F401"]
