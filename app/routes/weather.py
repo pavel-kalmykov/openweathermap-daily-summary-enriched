@@ -113,13 +113,11 @@ async def get_weather(
     location: Annotated[str | None, Query(description="Name of the location")] = None,
 ) -> WeatherServiceResponse:
     if all(param is not None for param in (latitude, longitude, location)):
-        raise WeatherServiceInputError(
-            "Provide either latitude and longitude OR location, not both"
-        )
+        msg = "Provide either latitude and longitude OR location, not both"
+        raise WeatherServiceInputError(msg)
     if all(param is None for param in (latitude, longitude, location)):
-        raise WeatherServiceInputError(
-            "Provide either latitude and longitude OR location"
-        )
+        msg = "Provide either latitude and longitude OR location"
+        raise WeatherServiceInputError(msg)
 
     enriched_weather_data = await (
         weather_service.get_weather_data_by_name(location, start_date, end_date)

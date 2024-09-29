@@ -1,6 +1,6 @@
 from contextlib import suppress
 from datetime import date
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Callable
 
 import pytest
 from app.core.database import get_db_session, run_migrations, sessionmanager
@@ -17,31 +17,37 @@ async def _run_migrations_fixture():
 
 
 @pytest.fixture
-async def test_client(_run_migrations_fixture) -> AsyncGenerator[TestClient, None]:  # noqa: PT019
+async def test_client(
+    _run_migrations_fixture: None,  # noqa: PT019
+) -> AsyncGenerator[TestClient, None]:
     app.dependency_overrides[get_db_session] = get_test_db_session
     return TestClient(app)
 
 
 @pytest.fixture
-async def db_session(_run_migrations_fixture) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(
+    _run_migrations_fixture: None,
+) -> AsyncGenerator[AsyncSession, None]:
     with suppress(SQLAlchemyError):
         async with sessionmanager.session() as session:
             yield session
-            raise SQLAlchemyError("We must not commit, but rollback in every test case")
+            msg = "We must not commit, but rollback in every test case"
+            raise SQLAlchemyError(msg)
 
 
 async def get_test_db_session():
     with suppress(SQLAlchemyError):
         async with sessionmanager.session() as session:
             yield session
-            raise SQLAlchemyError("We must not commit, but rollback in every test case")
+            msg = "We must not commit, but rollback in every test case"
+            raise SQLAlchemyError(msg)
 
 
 @pytest.fixture
-def mock_weather_api_response():
+def mock_weather_api_response() -> Callable[[date, float, float], Response]:
     def _mock_response(
         test_date: date, latitude: float = 40.7128, longitude: float = -74.0060
-    ):
+    ) -> Response:
         return Response(
             200,
             json={

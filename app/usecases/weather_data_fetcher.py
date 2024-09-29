@@ -83,8 +83,7 @@ class WeatherDataFetcher:
             try:
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                raise WeatherDataFetcherError(
-                    "Error fetching coordinates from API"
-                ) from exc
+                msg = "Error fetching coordinates from API"
+                raise WeatherDataFetcherError(msg) from exc
             logger.debug(f"Fetching coordinates for {location_name} completed.")
             return [GeocodingResult.model_validate(item) for item in response.json()]

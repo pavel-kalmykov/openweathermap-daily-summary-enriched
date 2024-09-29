@@ -58,7 +58,7 @@ For more detailed information on each endpoint, please refer to the specific end
 
 @app.exception_handler(WeatherServiceInputError)
 def weather_service_error_handler(
-    req: Request, exc: WeatherServiceInputError
+    _req: Request, exc: WeatherServiceInputError
 ) -> JSONResponse:
     return JSONResponse(
         status_code=400,

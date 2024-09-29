@@ -9,7 +9,7 @@ from app.usecases import WeatherDataProcessor
 
 
 @pytest.fixture
-def sample_data():
+def sample_data() -> list[WeatherDailySummaryResult]:
     return [
         WeatherDailySummaryResult.model_validate(
             {
@@ -36,7 +36,7 @@ def sample_data():
     ]
 
 
-def test_weather_data_processor(sample_data):
+def test_weather_data_processor(sample_data: list[WeatherDailySummaryResult]):
     processor = WeatherDataProcessor()
     result = processor.process_data(sample_data)
 

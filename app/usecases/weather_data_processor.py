@@ -6,10 +6,10 @@ import polars as pl
 class WeatherDataProcessor:
     def process_data(self: Self, raw_data: list[dict]) -> pl.DataFrame:
         # Convert the raw data to a Polars DataFrame
-        df = pl.DataFrame(raw_data)
+        weather_df = pl.DataFrame(raw_data)
 
         # Flatten nested structures
-        df = df.with_columns(
+        weather_df = weather_df.with_columns(
             [
                 pl.col("lat").alias("latitude"),
                 pl.col("lon").alias("longitude"),
@@ -45,7 +45,7 @@ class WeatherDataProcessor:
         )
 
         # Drop original nested columns
-        df = df.drop(
+        weather_df = weather_df.drop(
             [
                 "lat",
                 "lon",
@@ -61,15 +61,15 @@ class WeatherDataProcessor:
         )
 
         # Enrichment operations
-        df = self._add_temperature_variability_index(df)
-        df = self._add_seasonal_classification(df)
-        df = self._add_extreme_weather_detection(df)
-        df = self._add_humidex(df)
-        df = self._add_precipitation_intensity(df)
-        df = self._add_wind_chill(df)
-        df = self._add_heat_index(df)
+        weather_df = self._add_temperature_variability_index(weather_df)
+        weather_df = self._add_seasonal_classification(weather_df)
+        weather_df = self._add_extreme_weather_detection(weather_df)
+        weather_df = self._add_humidex(weather_df)
+        weather_df = self._add_precipitation_intensity(weather_df)
+        weather_df = self._add_wind_chill(weather_df)
+        weather_df = self._add_heat_index(weather_df)
 
-        return df
+        return weather_df
 
     def _add_temperature_variability_index(
         self: Self, df: pl.DataFrame
@@ -178,37 +178,37 @@ class WeatherDataProcessor:
         # https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
         # https://www.wpc.ncep.noaa.gov/html/heatindex.shtml
         # Convert temperature from Kelvin to Fahrenheit
-        T_F = (pl.col("temp_afternoon") - 273.15) * 9 / 5 + 32
-        RH = pl.col("humidity_afternoon")
+        temp_f = (pl.col("temp_afternoon") - 273.15) * 9 / 5 + 32
+        rel_hum = pl.col("humidity_afternoon")
 
         # Simple formula for low heat index values
-        HI_simple = 0.5 * (T_F + 61.0 + ((T_F - 68.0) * 1.2) + (RH * 0.094))
+        hi_simple = 0.5 * (temp_f + 61.0 + ((temp_f - 68.0) * 1.2) + (rel_hum * 0.094))
 
         # Rothfusz regression
-        HI = (
+        hi = (
             -42.379
-            + 2.04901523 * T_F
-            + 10.14333127 * RH
-            - 0.22475541 * T_F * RH
-            - 0.00683783 * T_F * T_F
-            - 0.05481717 * RH * RH
-            + 0.00122874 * T_F * T_F * RH
-            + 0.00085282 * T_F * RH * RH
-            - 0.00000199 * T_F * T_F * RH * RH
+            + 2.04901523 * temp_f
+            + 10.14333127 * rel_hum
+            - 0.22475541 * temp_f * rel_hum
+            - 0.00683783 * temp_f * temp_f
+            - 0.05481717 * rel_hum * rel_hum
+            + 0.00122874 * temp_f * temp_f * rel_hum
+            + 0.00085282 * temp_f * rel_hum * rel_hum
+            - 0.00000199 * temp_f * temp_f * rel_hum * rel_hum
         )
 
         # Adjustments
         adjustment = (
-            pl.when((RH < 13) & (T_F >= 80) & (T_F <= 112))
-            .then(((13 - RH) / 4) * ((17 - abs(T_F - 95)) / 17).sqrt())
-            .when((RH > 85) & (T_F >= 80) & (T_F <= 87))
-            .then(((RH - 85) / 10) * ((87 - T_F) / 5))
+            pl.when((rel_hum < 13) & (temp_f >= 80) & (temp_f <= 112))
+            .then(((13 - rel_hum) / 4) * ((17 - abs(temp_f - 95)) / 17).sqrt())
+            .when((rel_hum > 85) & (temp_f >= 80) & (temp_f <= 87))
+            .then(((rel_hum - 85) / 10) * ((87 - temp_f) / 5))
             .otherwise(0)
         )
 
-        HI_adjusted = pl.when(HI_simple < 80).then(HI_simple).otherwise(HI + adjustment)
+        hi_adjusted = pl.when(hi_simple < 80).then(hi_simple).otherwise(hi + adjustment)
 
         # Convert back to Kelvin
-        HI_kelvin = (HI_adjusted - 32) * 5 / 9 + 273.15
+        hi_kelvin = (hi_adjusted - 32) * 5 / 9 + 273.15
 
-        return df.with_columns([HI_kelvin.alias("heat_index")])
+        return df.with_columns([hi_kelvin.alias("heat_index")])

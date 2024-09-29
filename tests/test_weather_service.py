@@ -30,7 +30,7 @@ def weather_data_processor() -> WeatherDataProcessor:
 
 
 @pytest.fixture
-def weather_repository(db_session) -> WeatherRepository:
+def weather_repository(db_session: AsyncSession) -> WeatherRepository:
     return WeatherRepository(db_session)
 
 
@@ -46,8 +46,8 @@ def weather_service(
 
 
 @pytest.fixture
-def mock_weather_api_error_response():
-    def _mock_error_response(error_message: str):
+def mock_weather_api_error_response() -> Callable[[str], Response]:
+    def _mock_error_response(error_message: str) -> Response:
         return Response(400, json={"cod": "400", "message": error_message})
 
     return _mock_error_response
@@ -55,7 +55,9 @@ def mock_weather_api_error_response():
 
 @pytest.mark.asyncio()
 async def test_get_weather_data_new_data(
-    weather_service: WeatherService, mock_weather_api_response, respx_mock
+    weather_service: WeatherService,
+    mock_weather_api_response: Callable,
+    respx_mock: respx.Router,
 ):
     test_date = date(2024, 9, 1)
     respx_mock.get(settings.openweathermap_day_summary_url).mock(
@@ -139,7 +141,7 @@ async def test_get_weather_data_partial_existing(
     assert weather_summary2.date == missing_date
     assert weather_summary2.temp_min == pytest.approx(288.15)
     assert weather_summary1.date < weather_summary2.date
-    assert len(set(summary.date for summary in response.weather_data)) == 2
+    assert len({summary.date for summary in response.weather_data}) == 2
 
 
 @pytest.mark.asyncio()
@@ -303,7 +305,7 @@ async def test_get_weather_data_by_name_large_date_range(
 
 @pytest.mark.asyncio()
 async def test_get_weather_data_by_name_no_geocoding_results(
-    weather_service: WeatherService, respx_mock
+    weather_service: WeatherService, respx_mock: respx.Router
 ):
     location_name = "Benipavel"
     test_date = date(2023, 9, 1)

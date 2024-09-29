@@ -27,9 +27,10 @@ class WeatherService:
 
     def _validate_date_range(self: Self, start_date: date, end_date: date) -> None:
         if end_date - start_date > self.MAX_DATE_RANGE:
-            raise WeatherServiceInputError(
+            msg = (
                 f"Date range exceeds maximum allowed ({self.MAX_DATE_RANGE.days} days)"
             )
+            raise WeatherServiceInputError(msg)
 
     async def get_weather_data_by_name(
         self: Self, location_name: str, start_date: date, end_date: date
@@ -93,12 +94,12 @@ class WeatherService:
         )
 
         # Identify missing dates
-        existing_dates = set(summary.date for summary in existing_summaries)
-        all_dates = set(
+        existing_dates = {summary.date for summary in existing_summaries}
+        all_dates = {
             date.fromordinal(d)
             for d in range(start_date.toordinal(), end_date.toordinal() + 1)
-        )
-        missing_dates = sorted(list(all_dates - existing_dates))
+        }
+        missing_dates = sorted(all_dates - existing_dates)
 
         # Fetch missing data from API
         api_results, api_errors = await self.weater_data_fetcher.fetch_weather_data(
