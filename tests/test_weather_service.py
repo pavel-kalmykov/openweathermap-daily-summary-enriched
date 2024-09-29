@@ -4,10 +4,6 @@ from typing import AsyncGenerator, Callable
 import pytest
 import pytest_mock
 import respx
-from httpx import Response
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.config import settings
 from app.core.exceptions import WeatherServiceInputError
 from app.models import WeatherDailySummary
@@ -18,6 +14,9 @@ from app.schemas import (
 )
 from app.schemas.weather import WeatherSummaryResponse
 from app.usecases import WeatherDataFetcher, WeatherDataProcessor, WeatherService
+from httpx import Response
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
@@ -54,7 +53,7 @@ def mock_weather_api_error_response():
     return _mock_error_response
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_new_data(
     weather_service: WeatherService, mock_weather_api_response, respx_mock
 ):
@@ -85,7 +84,7 @@ async def test_get_weather_data_new_data(
     assert weather_summary.wind_direction_max == 180
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_partial_existing(
     weather_service: WeatherService,
     db_session: AsyncGenerator[AsyncSession, None],
@@ -143,7 +142,7 @@ async def test_get_weather_data_partial_existing(
     assert len(set(summary.date for summary in response.weather_data)) == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_invalid_coordinates(
     weather_service: WeatherService,
     mock_weather_api_error_response: Callable,
@@ -164,7 +163,7 @@ async def test_get_weather_data_invalid_coordinates(
     assert "wrong latitude" in response.errors[0]["message"]["message"]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_database_error(
     weather_service: WeatherService, mocker: pytest_mock.MockerFixture
 ):
@@ -181,7 +180,7 @@ async def test_get_weather_data_database_error(
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_large_date_range(
     weather_service: WeatherService,
 ):
@@ -194,7 +193,7 @@ async def test_get_weather_data_large_date_range(
         await weather_service.get_weather_data(40.7128, -74.0060, start_date, end_date)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_by_name(
     weather_service: WeatherService,
     mock_weather_api_response: Callable,
@@ -240,7 +239,7 @@ async def test_get_weather_data_by_name(
     assert response.weather_data[0].date == test_date
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_by_name_multiple_locations(
     weather_service: WeatherService, respx_mock: respx.Router
 ):
@@ -286,7 +285,7 @@ async def test_get_weather_data_by_name_multiple_locations(
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_by_name_large_date_range(
     weather_service: WeatherService,
 ):
@@ -302,7 +301,7 @@ async def test_get_weather_data_by_name_large_date_range(
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_data_by_name_no_geocoding_results(
     weather_service: WeatherService, respx_mock
 ):

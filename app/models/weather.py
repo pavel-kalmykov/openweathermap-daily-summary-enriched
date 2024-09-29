@@ -1,3 +1,5 @@
+from typing import Self
+
 from sqlalchemy import Boolean, Column, Date, Float, Integer, String
 
 from app.core.database import Base
@@ -41,5 +43,5 @@ class WeatherDailySummary(Base):
     wind_chill = Column(Float, nullable=True)
     heat_index = Column(Float, nullable=True)
 
-    def __repr__(self):
+    def __repr__(self: Self) -> str:
         return f"<WeatherDailySummary(date='{self.date}', lat={self.latitude}, lon={self.longitude})>"

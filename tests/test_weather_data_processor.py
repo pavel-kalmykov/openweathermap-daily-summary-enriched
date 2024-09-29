@@ -4,7 +4,6 @@ from datetime import date
 
 import polars as pl
 import pytest
-
 from app.schemas import WeatherDailySummaryResult
 from app.usecases import WeatherDataProcessor
 

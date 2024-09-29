@@ -3,28 +3,27 @@ from datetime import date
 from typing import AsyncGenerator
 
 import pytest
+from app.core.database import get_db_session, run_migrations, sessionmanager
+from app.main import app
 from fastapi.testclient import TestClient
 from httpx import Response
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import run_migrations, sessionmanager, get_db_session
-from app.main import app
-
 
 @pytest.fixture(scope="session")
-async def run_migrations_fixture():
+async def _run_migrations_fixture():
     await run_migrations()
 
 
 @pytest.fixture
-async def test_client(run_migrations_fixture) -> AsyncGenerator[TestClient, None]:
+async def test_client(_run_migrations_fixture) -> AsyncGenerator[TestClient, None]:  # noqa: PT019
     app.dependency_overrides[get_db_session] = get_test_db_session
-    yield TestClient(app)
+    return TestClient(app)
 
 
-@pytest.fixture(scope="function")
-async def db_session(run_migrations_fixture) -> AsyncGenerator[AsyncSession, None]:
+@pytest.fixture
+async def db_session(_run_migrations_fixture) -> AsyncGenerator[AsyncSession, None]:
     with suppress(SQLAlchemyError):
         async with sessionmanager.session() as session:
             yield session

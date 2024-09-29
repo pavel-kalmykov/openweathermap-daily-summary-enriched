@@ -1,7 +1,7 @@
 # app/services/weather_data_fetcher.py
 import asyncio
 from datetime import date
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import httpx
 from aiolimiter import AsyncLimiter
@@ -16,11 +16,11 @@ JsonType = dict[str, Any]
 
 
 class WeatherDataFetcher:
-    def __init__(self):
+    def __init__(self: Self):
         self.limiter = AsyncLimiter(settings.openweathermap_max_calls_per_minute)
 
     async def fetch_weather_data(
-        self, latitude: str, longitude: str, dates: list[date]
+        self: Self, latitude: str, longitude: str, dates: list[date]
     ) -> tuple[list[WeatherDailySummaryResult], list[JsonType]]:
         logger.debug(
             f"Fetching weather data for coordinates ({latitude}, {longitude}) for {len(dates)} dates"
@@ -53,7 +53,7 @@ class WeatherDataFetcher:
         return api_results, api_errors
 
     async def _fetch_single_day(
-        self, latitude: str, longitude: str, day: date
+        self: Self, latitude: str, longitude: str, day: date
     ) -> WeatherDailySummaryResult:
         params = {
             "lat": latitude,
@@ -69,7 +69,9 @@ class WeatherDataFetcher:
             response.raise_for_status()
             return WeatherDailySummaryResult.model_validate_json(response.text)
 
-    async def fetch_coordinates(self, location_name: str) -> list[GeocodingResult]:
+    async def fetch_coordinates(
+        self: Self, location_name: str
+    ) -> list[GeocodingResult]:
         logger.debug(f"Fetching coordinates for {location_name}")
         params = {
             "q": location_name,

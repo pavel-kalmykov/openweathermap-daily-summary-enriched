@@ -1,11 +1,11 @@
 import pytest
+from app.core.database import sessionmanager
 from sqlalchemy import text
 
-from app.core.database import sessionmanager
 
-
-@pytest.mark.asyncio
-async def test_run_migrations(run_migrations_fixture):
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_run_migrations_fixture")
+async def test_run_migrations():
     # This test will run migrations (by fixture) and check if tables are created
     async with sessionmanager.connect() as conn:
         result = await conn.execute(

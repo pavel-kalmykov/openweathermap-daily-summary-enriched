@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,7 +24,7 @@ class Settings(BaseSettings):
     weather_service_max_date_range: int = 31
 
     @property
-    def database_url(self) -> str:
+    def database_url(self: Self) -> str:
         return (
             self.db_url
             or f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"

@@ -1,6 +1,8 @@
 import contextlib
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Self
 
+from alembic import command
+from alembic.config import Config
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
@@ -9,8 +11,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base
 
-from alembic import command
-from alembic.config import Config
 from app.core.config import settings
 
 Base = declarative_base()
@@ -19,11 +19,11 @@ Base = declarative_base()
 
 
 class DatabaseSessionManager:
-    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):
+    def __init__(self: Self, host: str, engine_kwargs: dict[str, Any] = {}):
         self._engine = create_async_engine(host, **engine_kwargs)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
-    async def close(self):
+    async def close(self: Self):
         if self._engine is None:
             raise Exception("DatabaseSessionManager is not initialized")
         await self._engine.dispose()
@@ -32,7 +32,7 @@ class DatabaseSessionManager:
         self._sessionmaker = None
 
     @contextlib.asynccontextmanager
-    async def connect(self) -> AsyncIterator[AsyncConnection]:
+    async def connect(self: Self) -> AsyncIterator[AsyncConnection]:
         if self._engine is None:
             raise Exception("DatabaseSessionManager is not initialized")
 
@@ -44,7 +44,7 @@ class DatabaseSessionManager:
                 raise
 
     @contextlib.asynccontextmanager
-    async def session(self) -> AsyncIterator[AsyncSession]:
+    async def session(self: Self) -> AsyncIterator[AsyncSession]:
         if self._sessionmaker is None:
             raise Exception("DatabaseSessionManager is not initialized")
 
@@ -68,7 +68,7 @@ async def get_db_session():
 
 
 async def run_migrations():
-    def run_upgrade(connection, cfg):
+    def run_upgrade(connection: AsyncConnection, cfg: Config):
         cfg.attributes["connection"] = connection
         command.upgrade(cfg, "head")
 

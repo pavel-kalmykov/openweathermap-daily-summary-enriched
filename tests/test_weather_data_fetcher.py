@@ -1,12 +1,11 @@
 import datetime
 
 import pytest
-
 from app.schemas import GeocodingResult, WeatherDailySummaryResult
 from app.usecases.weather_data_fetcher import WeatherDataFetcher
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_weather_data_fetcher():
     fetcher = WeatherDataFetcher()
 
@@ -71,7 +70,7 @@ async def test_weather_data_fetcher():
     assert api_results == expected_results
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_weather_data_fetcher_incorrect_params():
     fetcher = WeatherDataFetcher()
 
@@ -96,7 +95,7 @@ async def test_weather_data_fetcher_incorrect_params():
     ]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_fetch_coordinates():
     fetcher = WeatherDataFetcher()
     results = await fetcher.fetch_coordinates("Santa Pola")
@@ -105,7 +104,7 @@ async def test_fetch_coordinates():
     assert all(isinstance(result, GeocodingResult) for result in results)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_fetch_coordinates_nonexisent():
     fetcher = WeatherDataFetcher()
     results = await fetcher.fetch_coordinates("Benipavel")

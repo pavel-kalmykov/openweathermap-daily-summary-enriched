@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from typing import Annotated
+from typing import Annotated, Self
 
 from fastapi import Depends
 
@@ -16,7 +16,7 @@ class WeatherService:
     MAX_DATE_RANGE = timedelta(days=settings.weather_service_max_date_range)
 
     def __init__(
-        self,
+        self: Self,
         weather_repository: Annotated[WeatherRepository, Depends()],
         weater_data_fetcher: Annotated[WeatherDataFetcher, Depends()],
         weather_data_processor: Annotated[WeatherDataProcessor, Depends()],
@@ -25,14 +25,14 @@ class WeatherService:
         self.weater_data_fetcher = weater_data_fetcher
         self.weather_data_processor = weather_data_processor
 
-    def _validate_date_range(self, start_date: date, end_date: date) -> None:
+    def _validate_date_range(self: Self, start_date: date, end_date: date) -> None:
         if end_date - start_date > self.MAX_DATE_RANGE:
             raise WeatherServiceInputError(
                 f"Date range exceeds maximum allowed ({self.MAX_DATE_RANGE.days} days)"
             )
 
     async def get_weather_data_by_name(
-        self, location_name: str, start_date: date, end_date: date
+        self: Self, location_name: str, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
         logger.debug(
             f"Getting weather data for location: {location_name} from {start_date} to {end_date}"
@@ -80,7 +80,7 @@ class WeatherService:
         return weather_response
 
     async def get_weather_data(
-        self, latitude: float, longitude: float, start_date: date, end_date: date
+        self: Self, latitude: float, longitude: float, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
         logger.debug(
             f"Getting weather data for coordinates ({latitude}, {longitude}) from {start_date} to {end_date}"

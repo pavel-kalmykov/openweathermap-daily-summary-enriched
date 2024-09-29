@@ -3,13 +3,12 @@ from typing import Callable
 
 import pytest
 import respx
+from app.core.config import settings
 from fastapi.testclient import TestClient
 from httpx import Response
 
-from app.core.config import settings
 
-
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_by_coordinates(
     test_client: TestClient,
     mock_weather_api_response: Callable,
@@ -40,7 +39,7 @@ async def test_get_weather_by_coordinates(
     assert "precipitation_total" in data["weather_data"][0]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_by_location(
     test_client: TestClient,
     mock_weather_api_response: Callable,
@@ -80,7 +79,7 @@ async def test_get_weather_by_location(
     assert data["weather_data"][0]["date"] == "2024-09-27"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_invalid_params(test_client: TestClient):
     response = test_client.get(
         "/weather/enriched-day-summary",
@@ -95,7 +94,7 @@ async def test_get_weather_invalid_params(test_client: TestClient):
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_all_params(test_client: TestClient):
     response = test_client.get(
         "/weather/enriched-day-summary",
@@ -116,7 +115,7 @@ async def test_get_weather_all_params(test_client: TestClient):
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_date_range_too_large(test_client: TestClient):
     response = test_client.get(
         "/weather/enriched-day-summary",
@@ -134,7 +133,7 @@ async def test_get_weather_date_range_too_large(test_client: TestClient):
     assert "Date range exceeds maximum allowed" in data["errors"][0]["message"]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_weather_api_error(test_client: TestClient, respx_mock: respx.Router):
     respx_mock.get(settings.openweathermap_day_summary_url).mock(
         return_value=Response(401, json={"cod": "401", "message": "Invalid API key"})

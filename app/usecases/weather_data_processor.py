@@ -1,8 +1,10 @@
+from typing import Self
+
 import polars as pl
 
 
 class WeatherDataProcessor:
-    def process_data(self, raw_data: list[dict]) -> pl.DataFrame:
+    def process_data(self: Self, raw_data: list[dict]) -> pl.DataFrame:
         # Convert the raw data to a Polars DataFrame
         df = pl.DataFrame(raw_data)
 
@@ -69,7 +71,9 @@ class WeatherDataProcessor:
 
         return df
 
-    def _add_temperature_variability_index(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_temperature_variability_index(
+        self: Self, df: pl.DataFrame
+    ) -> pl.DataFrame:
         return df.with_columns(
             [
                 (pl.col("temp_max") - pl.col("temp_min")).alias("temp_range"),
@@ -79,7 +83,7 @@ class WeatherDataProcessor:
             ]
         )
 
-    def _add_seasonal_classification(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_seasonal_classification(self: Self, df: pl.DataFrame) -> pl.DataFrame:
         return df.with_columns(
             [
                 pl.when(pl.col("temp_afternoon") >= 303.15)
@@ -99,7 +103,7 @@ class WeatherDataProcessor:
             ]
         )
 
-    def _add_extreme_weather_detection(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_extreme_weather_detection(self: Self, df: pl.DataFrame) -> pl.DataFrame:
         return df.with_columns(
             [
                 ((pl.col("temp_max") >= 308.15) | (pl.col("temp_min") < 263.15)).alias(
@@ -110,7 +114,7 @@ class WeatherDataProcessor:
             ]
         )
 
-    def _add_humidex(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_humidex(self: Self, df: pl.DataFrame) -> pl.DataFrame:
         # https://www.ohcow.on.ca/edit/files/general_handouts/heat-stress-calculator.html
         # Convert temperature from Kelvin to Celsius
         temp_c = pl.col("temp_afternoon") - 273.15
@@ -133,7 +137,7 @@ class WeatherDataProcessor:
             ]
         )
 
-    def _add_precipitation_intensity(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_precipitation_intensity(self: Self, df: pl.DataFrame) -> pl.DataFrame:
         return df.with_columns(
             [
                 pl.when(pl.col("precipitation_total") == 0)
@@ -147,7 +151,7 @@ class WeatherDataProcessor:
             ]
         )
 
-    def _add_wind_chill(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_wind_chill(self: Self, df: pl.DataFrame) -> pl.DataFrame:
         # http://weather.uky.edu/aen599/wchart.htm
         # https://www.weather.gov/epz/wxcalc_windchill
         temp_k = pl.col("temp_afternoon")
@@ -170,7 +174,7 @@ class WeatherDataProcessor:
             ]
         )
 
-    def _add_heat_index(self, df: pl.DataFrame) -> pl.DataFrame:
+    def _add_heat_index(self: Self, df: pl.DataFrame) -> pl.DataFrame:
         # https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
         # https://www.wpc.ncep.noaa.gov/html/heatindex.shtml
         # Convert temperature from Kelvin to Fahrenheit
