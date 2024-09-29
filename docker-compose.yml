@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${APP_PORT}:${APP_PORT}"
+      - ${APP_PORT}:80
     environment:
       - API_KEY=${API_KEY}
       - DB_HOST=db
@@ -33,7 +33,7 @@ services:
       context: .
       dockerfile: Dockerfile.mkdocs
     ports:
-      - "${MKDOCS_PORT}:8000"
+      - ${MKDOCS_PORT}:8000
 
 
 volumes:

@@ -11,4 +11,4 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
-CMD ["fastapi", "run", "app/main.py"]
+CMD ["fastapi", "run", "app/main.py", "--host", "0.0.0.0", "--port", "80"]
