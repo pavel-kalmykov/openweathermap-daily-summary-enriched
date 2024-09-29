@@ -13,6 +13,19 @@ from app.usecases import WeatherDataFetcher, WeatherDataProcessor
 
 
 class WeatherService:
+    """
+    Service class for managing weather data operations.
+
+    This class provides methods for retrieving and processing weather data
+    for specific locations and date ranges.
+
+    Attributes:
+        MAX_DATE_RANGE (timedelta): Maximum allowed date range for weather data retrieval.
+        weather_repository (WeatherRepository): Repository for weather data storage and retrieval.
+        weater_data_fetcher (WeatherDataFetcher): Service for fetching weather data from external API.
+        weather_data_processor (WeatherDataProcessor): Service for processing raw weather data.
+    """
+
     MAX_DATE_RANGE = timedelta(days=settings.weather_service_max_date_range)
 
     def __init__(
@@ -26,6 +39,16 @@ class WeatherService:
         self.weather_data_processor = weather_data_processor
 
     def _validate_date_range(self: Self, start_date: date, end_date: date) -> None:
+        """
+        Validate the given date range.
+
+        Args:
+            start_date: The start date of the range.
+            end_date: The end date of the range.
+
+        Raises:
+            WeatherServiceInputError: If the date range exceeds the maximum allowed range.
+        """
         if end_date - start_date > self.MAX_DATE_RANGE:
             msg = (
                 f"Date range exceeds maximum allowed ({self.MAX_DATE_RANGE.days} days)"
@@ -35,6 +58,17 @@ class WeatherService:
     async def get_weather_data_by_name(
         self: Self, location_name: str, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
+        """
+        Get weather data for a location by its name.
+
+        Args:
+            location_name: Name of the location.
+            start_date: Start date for the weather data.
+            end_date: End date for the weather data.
+
+        Returns:
+            WeatherServiceResponse containing the weather data, any errors, and geocoding results.
+        """
         logger.debug(
             f"Getting weather data for location: {location_name} from {start_date} to {end_date}"
         )
@@ -83,6 +117,18 @@ class WeatherService:
     async def get_weather_data(
         self: Self, latitude: float, longitude: float, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
+        """
+        Get weather data for a location by its coordinates.
+
+        Args:
+            latitude: Latitude of the location.
+            longitude: Longitude of the location.
+            start_date: Start date for the weather data.
+            end_date: End date for the weather data.
+
+        Returns:
+            WeatherServiceResponse containing the weather data and any errors.
+        """
         logger.debug(
             f"Getting weather data for coordinates ({latitude}, {longitude}) from {start_date} to {end_date}"
         )

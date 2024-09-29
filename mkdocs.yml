@@ -1,0 +1,65 @@
+site_name: Enriched Weather API
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.arithmatex:
+      generic: true
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - attr_list
+
+nav:
+  - Home: index.md
+  - Dev Seup:
+    - Setup: development/setup.md
+  - API Reference:
+    - Weather: api/weather.md
+  - Code Reference:
+    - Weather Service: reference/weather_service.md
+    - Weather Data Fetcher: reference/weather_data_fetcher.md
+    - Weather Data Processor: reference/weather_data_processor.md
+    - Weather Repository: reference/weather_repository.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: true
+          selection:
+            docstring_style: google
+
+watch:
+  - app

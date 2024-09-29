@@ -4,7 +4,81 @@ import polars as pl
 
 
 class WeatherDataProcessor:
+    """A class for processing raw weather data into an enriched format, using Polars."""
+
     def process_data(self: Self, raw_data: list[dict]) -> pl.DataFrame:
+        """
+        Process raw weather data into an enriched format.
+
+        This method performs the following operations:
+        1. Converts raw data to a Polars DataFrame.
+        2. Flattens nested structures in the data.
+        3. Adds a temperature variability index.
+        4. Adds seasonal classification based on temperature.
+        5. Adds flags for extreme weather conditions.
+        6. Calculates and adds humidex (felt air temperature).
+        7. Adds qualitative description of precipitation intensity.
+        8. Calculates and adds wind chill.
+        9. Calculates and adds heat index.
+
+        Args:
+            raw_data (list[dict]): List of dictionaries containing raw weather data.
+
+        Returns:
+            pl.DataFrame: A Polars DataFrame containing the processed and enriched weather data.
+
+        Detailed operations:
+
+        1. Flattening nested structures:
+            - Renames 'lat' to 'latitude' and 'lon' to 'longitude'.
+            - Converts 'date' string to Date type.
+            - Extracts nested values for cloud cover, humidity, precipitation, temperature, pressure, and wind.
+
+        2. Temperature variability index:
+            - Calculates 'temp_range' as the difference between max and min temperature.
+            - Calculates 'temp_variability_index' as (temp_max - temp_min) / temp_max.
+
+        3. Seasonal classification. Classifies based on afternoon temperature:
+            * Summer: >= 303.15K (30°C)
+            * Late Spring/Early Fall: 293.15K-303.15K (20-30°C)
+            * Spring/Fall: 283.15K-293.15K (10-20°C)
+            * Winter: < 283.15K (10°C)
+
+        4. Extreme weather detection:
+            - Sets 'extreme_temperature' flag if max temp >= 308.15K (35°C) or min temp < 263.15K (-10°C).
+            - Sets 'extreme_precipitation' flag if total precipitation > 50mm.
+            - Sets 'extreme_wind' flag if max wind speed > 20 m/s.
+
+        5. Humidex calculation:
+            - Converts temperature from Kelvin to Celsius.
+            - Calculates dewpoint using relative humidity.
+            - Computes humidex using the formula:
+            ```python
+            humidex = temp_c + 0.5555 * (6.11 * e^(5417.7530 * (1/273.16 - 1/(dewpoint+273.15))) - 10)
+            ```
+
+
+        6. Precipitation intensity. Classifies based on total precipitation:
+            * None: 0mm
+            * Light: 0-10mm
+            * Moderate: 10-50mm
+            * Heavy: >50mm
+
+        7. Wind chill calculation:
+            - Applies only when temperature <= 283.15K (10°C) and wind speed > 1.33 m/s.
+            - Uses formula:
+            ```python
+            wind_chill = 13.12 + 0.6215 * temp_c - 11.37 * (wind_speed * 3.6)^0.16 + 0.3965 * temp_c * (wind_speed * 3.6)^0.16
+            ```
+
+        8. Heat index calculation:
+            - Converts temperature to Fahrenheit.
+            - Uses [an adapted Rothfusz regression](https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml) for main calculation.
+            - Applies adjustments for extreme temperature and humidity conditions.
+            - Converts result back to Kelvin.
+
+        Note: All temperature calculations are performed in Kelvin unless otherwise specified.
+        """
         # Convert the raw data to a Polars DataFrame
         weather_df = pl.DataFrame(raw_data)
 
