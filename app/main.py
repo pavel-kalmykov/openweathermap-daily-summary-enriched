@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.core.config import settings
 from app.core.database import run_migrations, sessionmanager
@@ -69,3 +69,8 @@ def weather_service_error_handler(
 
 
 app.include_router(weather.router)
+
+
+@app.get("/", include_in_schema=False)
+async def docs_redirect() -> RedirectResponse:
+    return RedirectResponse(url="/docs")
