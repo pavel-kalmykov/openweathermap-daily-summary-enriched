@@ -87,7 +87,7 @@ async def test_weather_data_fetcher_incorrect_params():
     assert api_errors == [
         {
             "date": datetime.date(2024, 9, 27),
-            "error": {
+            "message": {
                 "code": "400",
                 "message": "The valid range of latitude in degrees is -90 and +90 for the southern and northern hemisphere, respectively",
                 "parameters": ["lat"],

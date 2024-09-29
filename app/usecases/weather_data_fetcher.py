@@ -1,12 +1,14 @@
 # app/services/weather_data_fetcher.py
 import asyncio
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from aiolimiter import AsyncLimiter
+from fastapi import status
 
 from app.core.config import settings
+from app.core.exceptions import WeatherDataFetcherError
 from app.schemas import GeocodingResult, WeatherDailySummaryResult
 
 JsonType = dict[str, Any]
@@ -27,12 +29,14 @@ class WeatherDataFetcher:
 
         for result, day in zip(results, dates):
             if isinstance(result, Exception):
-                error_msg = (
-                    result.response.json()
-                    if isinstance(result, httpx.HTTPStatusError)
-                    else str(result)
-                )
-                api_errors.append({"date": day, "error": error_msg})
+                error_msg = str(result)
+                if isinstance(result, httpx.HTTPStatusError):
+                    response = cast(httpx.HTTPStatusError, result).response
+                    if response.status_code == status.HTTP_400_BAD_REQUEST:
+                        error_msg = response.json()
+                    else:
+                        error_msg = "Error fetching weather daily summary from API"
+                api_errors.append({"date": day, "message": error_msg})
             else:
                 api_results.append(result)
 
@@ -63,5 +67,10 @@ class WeatherDataFetcher:
         }
         async with self.limiter, httpx.AsyncClient() as client:
             response = await client.get(settings.geocoding_api_url, params=params)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                raise WeatherDataFetcherError(
+                    "Error fetching coordinates from API"
+                ) from exc
             return [GeocodingResult.model_validate(item) for item in response.json()]

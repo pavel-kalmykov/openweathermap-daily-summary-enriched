@@ -20,7 +20,7 @@ async def test_get_weather_by_coordinates(
     )
 
     response = test_client.get(
-        "/api/weather/enriched-day-summary",
+        "/weather/enriched-day-summary",
         params={
             "latitude": 40.7128,
             "longitude": -74.0060,
@@ -65,14 +65,13 @@ async def test_get_weather_by_location(
     )
 
     response = test_client.get(
-        "/api/weather/enriched-day-summary",
+        "/weather/enriched-day-summary",
         params={
             "location": "New York",
             "start_date": "2024-09-27",
             "end_date": "2024-09-27",
         },
     )
-    print(response.text)
     assert response.status_code == 200
     data = response.json()
     assert len(data["weather_data"]) == 1
@@ -84,20 +83,22 @@ async def test_get_weather_by_location(
 @pytest.mark.asyncio
 async def test_get_weather_invalid_params(test_client: TestClient):
     response = test_client.get(
-        "/api/weather/enriched-day-summary",
+        "/weather/enriched-day-summary",
         params={"start_date": "2024-09-27", "end_date": "2024-09-27"},
     )
 
     assert response.status_code == 400
+    data = response.json()
     assert (
-        "Provide either latitude and longitude OR location" in response.json()["detail"]
+        "Provide either latitude and longitude OR location"
+        in data["errors"][0]["message"]
     )
 
 
 @pytest.mark.asyncio
 async def test_get_weather_all_params(test_client: TestClient):
     response = test_client.get(
-        "/api/weather/enriched-day-summary",
+        "/weather/enriched-day-summary",
         params={
             "start_date": "2024-09-27",
             "end_date": "2024-09-27",
@@ -108,16 +109,17 @@ async def test_get_weather_all_params(test_client: TestClient):
     )
 
     assert response.status_code == 400
+    data = response.json()
     assert (
         "Provide either latitude and longitude OR location, not both"
-        in response.json()["detail"]
+        in data["errors"][0]["message"]
     )
 
 
 @pytest.mark.asyncio
 async def test_get_weather_date_range_too_large(test_client: TestClient):
     response = test_client.get(
-        "/api/weather/enriched-day-summary",
+        "/weather/enriched-day-summary",
         params={
             "latitude": 40.7128,
             "longitude": -74.0060,
@@ -126,23 +128,20 @@ async def test_get_weather_date_range_too_large(test_client: TestClient):
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 400
     data = response.json()
-    assert len(data["weather_data"]) == 0
     assert len(data["errors"]) > 0
-    assert any(
-        "Date range exceeds maximum allowed" in error for error in data["errors"]
-    )
+    assert "Date range exceeds maximum allowed" in data["errors"][0]["message"]
 
 
 @pytest.mark.asyncio
 async def test_get_weather_api_error(test_client: TestClient, respx_mock: respx.Router):
     respx_mock.get(settings.openweathermap_day_summary_url).mock(
-        return_value=Response(400, json={"cod": "400", "message": "Invalid API key"})
+        return_value=Response(401, json={"cod": "401", "message": "Invalid API key"})
     )
 
     response = test_client.get(
-        "/api/weather/enriched-day-summary",
+        "/weather/enriched-day-summary",
         params={
             "latitude": 40.7128,
             "longitude": -74.0060,
@@ -151,8 +150,11 @@ async def test_get_weather_api_error(test_client: TestClient, respx_mock: respx.
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 206
     data = response.json()
     assert len(data["weather_data"]) == 0
     assert len(data["errors"]) > 0
-    assert any("Invalid API key" in str(error) for error in data["errors"])
+    assert any(
+        "Error fetching weather daily summary from API" in str(error)
+        for error in data["errors"]
+    )

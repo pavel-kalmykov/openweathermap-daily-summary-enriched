@@ -71,7 +71,7 @@ class WeatherServiceResponse(BaseModel):
         Field(description="List of daily weather summaries"),
     ]
     errors: Annotated[
-        list[str | dict[str, Any]],
+        list[dict[str, Any]],
         Field(
             default=[],
             description="List of errors encountered during data retrieval or processing",

@@ -9,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.exceptions import WeatherServiceInputError
 from app.models import WeatherDailySummary
 from app.repositories import WeatherRepository
 from app.schemas import (
@@ -160,7 +161,7 @@ async def test_get_weather_data_invalid_coordinates(
     assert isinstance(response, WeatherServiceResponse)
     assert not response.weather_data
     assert len(response.errors) == 1
-    assert "wrong latitude" in response.errors[0]["error"]["message"]
+    assert "wrong latitude" in response.errors[0]["message"]["message"]
 
 
 @pytest.mark.asyncio
@@ -187,14 +188,10 @@ async def test_get_weather_data_large_date_range(
     start_date = date(2024, 8, 29)
     end_date = date(2024, 9, 30)
 
-    response = await weather_service.get_weather_data(
-        40.7128, -74.0060, start_date, end_date
-    )
-
-    assert isinstance(response, WeatherServiceResponse)
-    assert not response.weather_data
-    assert len(response.errors) == 1
-    assert "Date range exceeds maximum allowed" in response.errors[0]
+    with pytest.raises(
+        WeatherServiceInputError, match="Date range exceeds maximum allowed"
+    ):
+        await weather_service.get_weather_data(40.7128, -74.0060, start_date, end_date)
 
 
 @pytest.mark.asyncio
@@ -282,7 +279,7 @@ async def test_get_weather_data_by_name_multiple_locations(
     assert isinstance(response, WeatherServiceResponse)
     assert not response.weather_data
     assert len(response.errors) == 1
-    assert "Multiple locations found" in response.errors[0]
+    assert "Multiple locations found" in response.errors[0]["message"]
     assert len(response.geocoding_results) == 2
     assert all(
         isinstance(result, GeocodingResult) for result in response.geocoding_results
@@ -297,14 +294,12 @@ async def test_get_weather_data_by_name_large_date_range(
     start_date = date(2024, 8, 28)
     end_date = date(2024, 9, 30)
 
-    response = await weather_service.get_weather_data_by_name(
-        location_name, start_date, end_date
-    )
-
-    assert isinstance(response, WeatherServiceResponse)
-    assert not response.weather_data
-    assert len(response.errors) == 1
-    assert "Date range exceeds maximum allowed" in response.errors[0]
+    with pytest.raises(
+        WeatherServiceInputError, match="Date range exceeds maximum allowed"
+    ):
+        await weather_service.get_weather_data_by_name(
+            location_name, start_date, end_date
+        )
 
 
 @pytest.mark.asyncio
@@ -324,5 +319,5 @@ async def test_get_weather_data_by_name_no_geocoding_results(
     assert isinstance(response, WeatherServiceResponse)
     assert not response.weather_data
     assert len(response.errors) == 1
-    assert "Could not find coordinates for location" in response.errors[0]
+    assert "Could not find coordinates for location" in response.errors[0]["message"]
     assert not response.geocoding_results

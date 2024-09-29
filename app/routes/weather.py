@@ -1,8 +1,10 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query, Response, status
 
+from app.core.config import settings
+from app.core.exceptions import WeatherServiceInputError
 from app.schemas import WeatherServiceResponse
 from app.usecases import WeatherService
 
@@ -13,11 +15,11 @@ router = APIRouter(prefix="/weather", tags=["Weather"])
     "/enriched-day-summary",
     response_model=WeatherServiceResponse,
     summary="Get enriched weather data for a location",
-    description="""
+    description=f"""
 Retrieve enriched weather data for a specific location and date range.
 
 You can specify the location either by latitude and longitude coordinates or by location name.
-The date range is required and should not exceed 31 days.
+The date range is required and should not exceed {settings.weather_service_max_date_range} days. Opposed ranges will count as empty ranges.
 
 The response includes daily weather summaries with various metrics and derived indices.
     """,
@@ -66,7 +68,11 @@ The response includes daily weather summaries with various metrics and derived i
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Provide either latitude and longitude OR location, not both"
+                        "errors": [
+                            {
+                                "message": "Provide either latitude and longitude OR location, not both"
+                            }
+                        ]
                     }
                 }
             },
@@ -90,6 +96,7 @@ The response includes daily weather summaries with various metrics and derived i
     },
 )
 async def get_weather(
+    response: Response,
     start_date: Annotated[
         date, Query(..., description="Start date for weather data (YYYY-MM-DD)")
     ],
@@ -105,22 +112,20 @@ async def get_weather(
     ] = None,
     location: Annotated[str | None, Query(description="Name of the location")] = None,
 ) -> WeatherServiceResponse:
-    if (latitude is not None and longitude is not None) and location is not None:
-        raise HTTPException(
-            status_code=400,
-            detail="Provide either latitude and longitude OR location, not both",
+    if all(param is not None for param in (latitude, longitude, location)):
+        raise WeatherServiceInputError(
+            "Provide either latitude and longitude OR location, not both"
+        )
+    if all(param is None for param in (latitude, longitude, location)):
+        raise WeatherServiceInputError(
+            "Provide either latitude and longitude OR location"
         )
 
-    if latitude is not None and longitude is not None:
-        return await weather_service.get_weather_data(
-            latitude, longitude, start_date, end_date
-        )
-    elif location is not None:
-        return await weather_service.get_weather_data_by_name(
-            location, start_date, end_date
-        )
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="Provide either latitude and longitude OR location",
-        )
+    enriched_weather_data = await (
+        weather_service.get_weather_data_by_name(location, start_date, end_date)
+        if location is not None
+        else weather_service.get_weather_data(latitude, longitude, start_date, end_date)
+    )
+    if enriched_weather_data.errors:
+        response.status_code = status.HTTP_206_PARTIAL_CONTENT
+    return enriched_weather_data

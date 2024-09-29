@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from app.core.config import settings
+from app.core.exceptions import WeatherDataFetcherError, WeatherServiceInputError
 from app.models.weather import WeatherDailySummary
 from app.repositories import WeatherRepository
 from app.schemas import WeatherServiceResponse, WeatherSummaryResponse
@@ -23,29 +24,32 @@ class WeatherService:
         self.weater_data_fetcher = weater_data_fetcher
         self.weather_data_processor = weather_data_processor
 
-    def _validate_date_range(self, start_date: date, end_date: date) -> str | None:
+    def _validate_date_range(self, start_date: date, end_date: date) -> None:
         if end_date - start_date > self.MAX_DATE_RANGE:
-            return (
+            raise WeatherServiceInputError(
                 f"Date range exceeds maximum allowed ({self.MAX_DATE_RANGE.days} days)"
             )
-        return None
 
     async def get_weather_data_by_name(
         self, location_name: str, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
-        date_range_error = self._validate_date_range(start_date, end_date)
-        if date_range_error:
-            return WeatherServiceResponse(
-                weather_data=[], errors=[date_range_error], geocoding_results=[]
-            )
+        self._validate_date_range(start_date, end_date)
 
-        geocoding_results = await self.weater_data_fetcher.fetch_coordinates(
-            location_name
-        )
+        geocoding_results = []
+        try:
+            geocoding_results = await self.weater_data_fetcher.fetch_coordinates(
+                location_name
+            )
+        except WeatherDataFetcherError as exc:
+            raise WeatherServiceInputError(exc) from exc
         if not geocoding_results:
             return WeatherServiceResponse(
                 weather_data=[],
-                errors=[f"Could not find coordinates for location: {location_name}"],
+                errors=[
+                    {
+                        "message": f"Could not find coordinates for location: {location_name}"
+                    }
+                ],
                 geocoding_results=[],
             )
 
@@ -53,7 +57,9 @@ class WeatherService:
             return WeatherServiceResponse(
                 weather_data=[],
                 errors=[
-                    "Multiple locations found. Please specify coordinates manually."
+                    {
+                        "message": "Multiple locations found. Please specify coordinates manually."
+                    }
                 ],
                 geocoding_results=geocoding_results,
             )
@@ -68,11 +74,7 @@ class WeatherService:
     async def get_weather_data(
         self, latitude: float, longitude: float, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
-        date_range_error = self._validate_date_range(start_date, end_date)
-        if date_range_error:
-            return WeatherServiceResponse(
-                weather_data=[], errors=[date_range_error], geocoding_results=[]
-            )
+        self._validate_date_range(start_date, end_date)
 
         # Query the database for existing data
         existing_summaries = await self.weather_repository.get_daily_summaries(
@@ -108,10 +110,11 @@ class WeatherService:
             existing_summaries.extend(saved_summaries)
 
         # Combine all data and return
-        all_summaries = sorted(existing_summaries, key=lambda x: x.date)
+        existing_summaries.sort(key=lambda x: x.date)
         return WeatherServiceResponse(
             weather_data=[
-                WeatherSummaryResponse.model_validate(data) for data in all_summaries
+                WeatherSummaryResponse.model_validate(data)
+                for data in existing_summaries
             ],
             errors=api_errors,
             geocoding_results=[],

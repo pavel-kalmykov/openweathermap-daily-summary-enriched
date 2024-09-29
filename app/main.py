@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import run_migrations, sessionmanager
+from app.core.exceptions import WeatherServiceInputError
 from app.core.logging import logger
 from app.routes import weather
 
@@ -52,6 +54,18 @@ For more detailed information on each endpoint, please refer to the specific end
         },
     ],
 )
+
+
+@app.exception_handler(WeatherServiceInputError)
+def weather_service_error_handler(
+    req: Request, exc: WeatherServiceInputError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content={
+            "errors": [{"message": str(exc)}],
+        },
+    )
 
 
 app.include_router(weather.router)
