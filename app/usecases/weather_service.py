@@ -5,6 +5,7 @@ from fastapi import Depends
 
 from app.core.config import settings
 from app.core.exceptions import WeatherDataFetcherError, WeatherServiceInputError
+from app.core.logging import logger
 from app.models.weather import WeatherDailySummary
 from app.repositories import WeatherRepository
 from app.schemas import WeatherServiceResponse, WeatherSummaryResponse
@@ -33,15 +34,17 @@ class WeatherService:
     async def get_weather_data_by_name(
         self, location_name: str, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
+        logger.debug(
+            f"Getting weather data for location: {location_name} from {start_date} to {end_date}"
+        )
         self._validate_date_range(start_date, end_date)
 
-        geocoding_results = []
         try:
             geocoding_results = await self.weater_data_fetcher.fetch_coordinates(
                 location_name
             )
-        except WeatherDataFetcherError as exc:
-            raise WeatherServiceInputError(exc) from exc
+        except WeatherDataFetcherError:
+            geocoding_results = []
         if not geocoding_results:
             return WeatherServiceResponse(
                 weather_data=[],
@@ -69,11 +72,19 @@ class WeatherService:
             latitude, longitude, start_date, end_date
         )
         weather_response.geocoding_results = geocoding_results
+        logger.debug(
+            f"Weather data retrieved for {location_name} from {start_date} to {end_date}. "
+            f"Results: {len(weather_response.weather_data)}, "
+            f"Errors: {len(weather_response.errors)}"
+        )
         return weather_response
 
     async def get_weather_data(
         self, latitude: float, longitude: float, start_date: date, end_date: date
     ) -> WeatherServiceResponse:
+        logger.debug(
+            f"Getting weather data for coordinates ({latitude}, {longitude}) from {start_date} to {end_date}"
+        )
         self._validate_date_range(start_date, end_date)
 
         # Query the database for existing data
@@ -107,10 +118,18 @@ class WeatherService:
             saved_summaries = await self.weather_repository.bulk_create_daily_summaries(
                 new_summaries
             )
+            logger.info(
+                f"Saved {len(new_summaries)} daily summaries for coordinates ({latitude}, {longitude}) from {start_date} to {end_date}"
+            )
             existing_summaries.extend(saved_summaries)
 
         # Combine all data and return
         existing_summaries.sort(key=lambda x: x.date)
+        logger.debug(
+            f"Weather data for coordinates ({latitude}, {longitude}) from {start_date} to {end_date} retrieved. "
+            f"Results: {len(existing_summaries)}, "
+            f"Errors: {len(api_errors)}"
+        )
         return WeatherServiceResponse(
             weather_data=[
                 WeatherSummaryResponse.model_validate(data)

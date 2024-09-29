@@ -8,7 +8,8 @@ from aiolimiter import AsyncLimiter
 from fastapi import status
 
 from app.core.config import settings
-from app.core.exceptions import WeatherDataFetcherError
+from app.core.exceptions import WeatherDataFetcherError, get_exception_traceback
+from app.core.logging import logger
 from app.schemas import GeocodingResult, WeatherDailySummaryResult
 
 JsonType = dict[str, Any]
@@ -21,6 +22,9 @@ class WeatherDataFetcher:
     async def fetch_weather_data(
         self, latitude: str, longitude: str, dates: list[date]
     ) -> tuple[list[WeatherDailySummaryResult], list[JsonType]]:
+        logger.debug(
+            f"Fetching weather data for coordinates ({latitude}, {longitude}) for {len(dates)} dates"
+        )
         tasks = [self._fetch_single_day(latitude, longitude, date) for date in dates]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -36,10 +40,16 @@ class WeatherDataFetcher:
                         error_msg = response.json()
                     else:
                         error_msg = "Error fetching weather daily summary from API"
+                stack_trace = get_exception_traceback(result)
+                logger.error(
+                    f"Error fetching data for {day}: {error_msg}. Stack trace: {stack_trace}"
+                )
                 api_errors.append({"date": day, "message": error_msg})
             else:
                 api_results.append(result)
-
+        logger.debug(
+            f"Weather data fetch for coordinates ({latitude}, {longitude}) completed. Results: {len(api_results)}, Errors: {len(api_errors)}"
+        )
         return api_results, api_errors
 
     async def _fetch_single_day(
@@ -60,6 +70,7 @@ class WeatherDataFetcher:
             return WeatherDailySummaryResult.model_validate_json(response.text)
 
     async def fetch_coordinates(self, location_name: str) -> list[GeocodingResult]:
+        logger.debug(f"Fetching coordinates for {location_name}")
         params = {
             "q": location_name,
             "limit": settings.geocoding_results_limit,
@@ -73,4 +84,5 @@ class WeatherDataFetcher:
                 raise WeatherDataFetcherError(
                     "Error fetching coordinates from API"
                 ) from exc
+            logger.debug(f"Fetching coordinates for {location_name} completed.")
             return [GeocodingResult.model_validate(item) for item in response.json()]
